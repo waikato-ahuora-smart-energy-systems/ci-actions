@@ -19,7 +19,7 @@ inputs:
     default: 'prerelease'
   token:
     description: 'The GitHub token to use for downloading the action, defaults to workflow token'
-    required: true
+    required: false
     default: ${{ github.token }}
   working-directory:
     description: 'The working directory to run the tag check in'
