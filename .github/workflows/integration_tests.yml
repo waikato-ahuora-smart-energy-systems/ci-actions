@@ -19,7 +19,7 @@ jobs:
         with:
           release-branch: main
           prerelease: 'false'
-          tag_prefix: 'v'
+          tag-prefix: 'v'
           working-directory: './dummy-repo'
 
       - name: Output latest tag

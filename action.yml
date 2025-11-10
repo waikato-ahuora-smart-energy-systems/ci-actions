@@ -5,7 +5,7 @@ inputs:
   release-branch:
     description: 'The branch to check for the latest tag'
     required: true
-  tag_prefix:
+  tag-prefix:
     description: 'The prefix of the semver tag to check for'
     required: false
     default: ''
