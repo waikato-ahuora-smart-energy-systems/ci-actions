@@ -17,7 +17,8 @@ struct Args {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let github_output_path = env::var("GITHUB_OUTPUT")?;
+    let github_output_path = env::var("GITHUB_OUTPUT")
+        .map_err(|_| "GITHUB_OUTPUT environment variable missing.")?;
     let args = Args::parse();
     let working_directory = env::current_dir()?;
 

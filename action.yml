@@ -73,5 +73,5 @@ runs:
         ./${{ runner.os }}/${{ env.binary_name }} \ 
         --release-branch "${{ inputs.release-branch }}" \
         --tag-prefix "${{ inputs.tag_prefix }}" \
-        [[ "${{inputs.prerelease }}" == "true" ]] && --prerelease || "" \
+        $( [ "$prerelease" = true ] && echo "--prerelease" ) \
         --prerelease-suffix "${{ inputs.prerelease-suffix }}"
