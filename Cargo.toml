@@ -1,0 +1,13 @@
+[package]
+name = "tag_checker"
+description = "Check for the most recent git tag based on a prefix and prerelease mode"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89.0"
+
+[dependencies]
+clap = { version = "4.5.46", features = ["derive"] }
+git2 = "0.20.2"
+semver = "1.0.26"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
