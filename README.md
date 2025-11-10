@@ -47,7 +47,7 @@ steps:
 
   - name: Get latest prerelease tag
     id: tag-prerelease
-    uses: your-org/tag_checker@v1
+    uses: waikato-ahuora-smart-energy-systems/ci-actions@v0.1.5
     with:
       release-branch: main
       tag-prefix: v
