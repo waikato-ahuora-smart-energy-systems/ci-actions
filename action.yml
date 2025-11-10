@@ -21,8 +21,8 @@ runs:
     - name: Set reusable variables
       shell: bash
       run: |
-        echo "action_repo=https://github.com/waikato-ahuora-smart-energy-systems/Ahuora-Adaptive-Digital-Twin-Platform" >> $GITHUB_ENV
-        echo "action_org=CMarcher-Ahuora" >> $GITHUB_ENV
+        echo "action_repo=https://github.com/waikato-ahuora-smart-energy-systems/ci-actions" >> $GITHUB_ENV
+        echo "action_org=waikato-ahuora-smart-energy-systems" >> $GITHUB_ENV
         echo "binary_name=tag_checker" >> $GITHUB_ENV
 
     - name: Get Action Version
