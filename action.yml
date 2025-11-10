@@ -25,6 +25,9 @@ outputs:
   error:
     description: 'The description of any error that occurred'
     value: ${{ steps.run.outputs.error }}
+  latest_tag:
+    description: 'The latest tag found'
+    value: ${{ steps.run.outputs.latest_tag }}
 
 runs:
   using: 'composite'
@@ -59,4 +62,8 @@ runs:
     - name: Run Action
       shell: bash
       id: run
-      run: ./${{ runner.os }}/${{ env.binary_name }} "${{ inputs.error }}" --release-branch
+      run: ./${{ runner.os }}/${{ env.binary_name }} "${{ inputs.error }}" \ 
+        --release-branch "${{ inputs.release-branch }}" \
+        --tag-prefix "${{ inputs.tag_prefix }}" \
+        [[ "${{inputs.prerelease }}" == "true" ]] && --prerelease || "" \
+        --prerelease-suffix "${{ inputs.prerelease-suffix }}"
