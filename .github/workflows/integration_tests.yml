@@ -15,6 +15,7 @@ jobs:
         run: ./tests/create-dummy-repo.sh dummy-repo
 
       - uses: ./
+        id: test
         with:
           release-branch: main
           prerelease: 'false'
@@ -22,4 +23,4 @@ jobs:
           working-directory: './dummy-repo'
 
       - name: Output latest tag
-        run: echo "Latest tag is ${{ steps.run.outputs.latest_tag }}"
+        run: echo "Latest tag is ${{ steps.test.outputs.latest_tag }}"
