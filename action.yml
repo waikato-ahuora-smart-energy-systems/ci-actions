@@ -21,6 +21,10 @@ inputs:
     description: 'The GitHub token to use for downloading the action, defaults to workflow token'
     required: true
     default: ${{ github.token }}
+  working-directory:
+    description: 'The working directory to run the tag check in'
+    required: false
+    default: '.'
 outputs:
   error:
     description: 'The description of any error that occurred'
@@ -54,6 +58,7 @@ runs:
     - name: Download Action
       shell: bash
       run: |
+        cd ${{ inputs.working-directory }}
         gh release download ${{ steps.get_action_version.outputs.version }} --repo ${{ env.action_org }}/${{ env.action_repo }} --pattern '${{ runner.os }}.tgz'
         tar -xzf ${{ runner.os }}.tgz
       env:
@@ -62,7 +67,10 @@ runs:
     - name: Run Action
       shell: bash
       id: run
-      run: ./${{ runner.os }}/${{ env.binary_name }} "${{ inputs.error }}" \ 
+      run: |
+        cd ${{ inputs.working-directory }}
+        
+        ./${{ runner.os }}/${{ env.binary_name }} \ 
         --release-branch "${{ inputs.release-branch }}" \
         --tag-prefix "${{ inputs.tag_prefix }}" \
         [[ "${{inputs.prerelease }}" == "true" ]] && --prerelease || "" \

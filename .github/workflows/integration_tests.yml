@@ -10,20 +10,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./
 
-  test_error:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - id: test
-        continue-on-error: true
-        uses: ./
+      - name: Create dummy git repo
+        run: ./tests/create-dummy-repo.sh dummy-repo
+
+      - uses: ./
         with:
-          error: "This is an error"
-      - name: Verify failure
-        if: steps.test.outputs.error != ''
-        run: echo "Failed as expected"
-      - name: Unexpected success
-        if: steps.test.outputs.error == ''
-        run: echo "Succeeded unexpectedly" && exit 1
+          release-branch: main
+          prerelease: 'false'
+          tag_prefix: 'v'
+          working-directory: './dummy-repo'
+
+      - name: Output latest tag
+        run: echo "Latest tag is ${{ steps.run.outputs.latest_tag }}"
