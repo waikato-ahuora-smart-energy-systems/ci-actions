@@ -2,10 +2,21 @@ name: tag_checker
 description: Check for the most recent git tag based on a prefix and prerelease mode
 author: Caleb Archer <ca107@students.waikato.ac.nz>
 inputs:
-  error:
-    description: 'The error message to display, if any'
+  release-branch:
+    description: 'The branch to check for the latest tag'
+    required: true
+  tag_prefix:
+    description: 'The prefix of the semver tag to check for'
     required: false
     default: ''
+  prerelease:
+    description: 'Whether to include prerelease tags when checking for the latest tag'
+    required: false
+    default: 'false'
+  prerelease-suffix:
+    description: 'The suffix to use when identifying prerelease tags'
+    required: false
+    default: 'prerelease'
   token:
     description: 'The GitHub token to use for downloading the action, defaults to workflow token'
     required: true
@@ -48,4 +59,4 @@ runs:
     - name: Run Action
       shell: bash
       id: run
-      run: ./${{ runner.os }}/${{ env.binary_name }} "${{ inputs.error }}"
+      run: ./${{ runner.os }}/${{ env.binary_name }} "${{ inputs.error }}" --release-branch
