@@ -1,10 +1,8 @@
+use clap::Parser;
+use git2::Repository;
 use std::env;
 use std::error::Error;
 use std::fs::write;
-use std::process::exit;
-use clap::Parser;
-use git2::Repository;
-use git2::string_array::StringArray;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -43,18 +41,23 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn get_latest_tag(tag_pattern: String, tag_prefix: &str, tags: Vec<&str>) -> Result<String, Box<dyn Error>> {
-    let latest_tag = tags.iter()
-        .max_by(|a, b| {
-            let a_version = semver::Version::parse(&a[tag_prefix.len()..]).unwrap_or(semver::Version::new(0, 0, 0));
-            let b_version = semver::Version::parse(&b[tag_prefix.len()..]).unwrap_or(semver::Version::new(0, 0, 0));
-            a_version.cmp(&b_version)
-        });
+fn get_latest_tag(
+    tag_pattern: String,
+    tag_prefix: &str,
+    tags: Vec<&str>,
+) -> Result<String, Box<dyn Error>> {
+    let latest_tag = tags.iter().max_by(|a, b| {
+        let a_version =
+            semver::Version::parse(&a[tag_prefix.len()..]).unwrap_or(semver::Version::new(0, 0, 0));
+        let b_version =
+            semver::Version::parse(&b[tag_prefix.len()..]).unwrap_or(semver::Version::new(0, 0, 0));
+        a_version.cmp(&b_version)
+    });
 
     let latest_tag = if let Some(tag) = latest_tag {
         tag.to_string()
     } else {
-        return Err(format!("No tags found matching pattern: {}", tag_pattern).into())
+        return Err(format!("No tags found matching pattern: {}", tag_pattern).into());
     };
 
     Ok(latest_tag.to_owned())
