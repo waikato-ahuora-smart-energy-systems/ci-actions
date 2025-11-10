@@ -70,8 +70,7 @@ runs:
       run: |
         cd ${{ inputs.working-directory }}
         
-        ./${{ runner.os }}/${{ env.binary_name }} \ 
-        --release-branch "${{ inputs.release-branch }}" \
+        ./${{ runner.os }}/${{ env.binary_name }} --release-branch "${{ inputs.release-branch }}" \
         --tag-prefix "${{ inputs.tag_prefix }}" \
         $( [ "$prerelease" = true ] && echo "--prerelease" ) \
         --prerelease-suffix "${{ inputs.prerelease-suffix }}"
