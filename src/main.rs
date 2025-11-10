@@ -1,5 +1,6 @@
 use clap::Parser;
 use git2::Repository;
+use regex::Regex;
 use std::env;
 use std::error::Error;
 use std::fs::write;
@@ -25,16 +26,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     let repository = Repository::discover(working_directory.as_path())
         .map_err(|_| "No git repository found in working directory or parent directories")?;
 
-    let prerelease_matcher = if args.prerelease {
-        args.prerelease_suffix.as_str()
-    } else {
-        ""
-    };
-    let tag_pattern = format!("{}*{}*", args.tag_prefix, prerelease_matcher);
-    let tags = repository.tag_names(Some(&tag_pattern))?;
+    let tags = repository.tag_names(None)?;
     let tags = tags.iter().flatten().collect::<Vec<_>>();
+    let latest_tag = get_latest_tag(
+        tags,
+        &args.tag_prefix,
+        &args.prerelease_suffix,
+        args.prerelease,
+    )?;
 
-    let latest_tag = get_latest_tag(tag_pattern, args.tag_prefix.as_str(), tags)?;
+    println!("Latest tag found: {}", latest_tag);
 
     // Write as GitHub actions output
     write(github_output_path, format!("latest_tag={}\n", latest_tag))?;
@@ -42,11 +43,55 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn get_latest_tag(
-    tag_pattern: String,
+/// Generate the appropriate tag pattern based on whether prerelease tags are considered
+/// # Arguments
+/// * `prerelease` - A boolean indicating if prerelease tags should be included
+/// * `tag_prefix` - The prefix for the tags (e.g., "v")
+/// * `prerelease_suffix` - The suffix for prerelease tags (e.g. beta, rc)
+/// # Returns
+/// A Regex pattern to match the tags
+/// # Errors
+/// Returns an error if the regex pattern is invalid
+fn get_tag_pattern(
+    prerelease: bool,
     tag_prefix: &str,
+    prerelease_suffix: &str,
+) -> Result<Regex, Box<dyn Error>> {
+    let tag_pattern = if prerelease {
+        Regex::new(&format!(
+            r"^{}\d+.\d+.\d+-{}\.\d+$",
+            tag_prefix, prerelease_suffix
+        ))?
+    } else {
+        Regex::new(&format!(r"^{}\d+.\d+.\d+$", tag_prefix))?
+    };
+
+    Ok(tag_pattern)
+}
+
+/// Get the latest tag from a list of tags based on semantic versioning
+/// # Arguments
+/// * `tags` - A vector of tag strings
+/// * `tag_prefix` - The prefix for the tags (e.g., "v")
+/// * `prerelease_suffix` - The suffix for prerelease tags (e.g. beta, rc)
+/// * `prerelease` - A boolean indicating if prerelease tags should be included
+/// # Returns
+/// The latest tag as a string
+/// # Errors
+/// Returns an error if no matching tags are found
+fn get_latest_tag(
     tags: Vec<&str>,
+    tag_prefix: &str,
+    prerelease_suffix: &str,
+    prerelease: bool,
 ) -> Result<String, Box<dyn Error>> {
+    let tag_pattern = get_tag_pattern(prerelease, tag_prefix, prerelease_suffix)?;
+
+    let tags: Vec<&str> = tags
+        .into_iter()
+        .filter(|tag| tag_pattern.is_match(tag))
+        .collect();
+
     let latest_tag = tags.iter().max_by(|a, b| {
         let a_version =
             semver::Version::parse(&a[tag_prefix.len()..]).unwrap_or(semver::Version::new(0, 0, 0));
@@ -72,27 +117,32 @@ mod tests {
     fn test_get_latest_tag() {
         // Check that the highest stable tag is returned even with an older prerelease of the same major.minor.patch version
         let tags = vec!["v1.0.0", "v1.2.0", "v1.1.5", "v2.0.0-beta.0", "v2.0.0"];
-        let latest_tag = get_latest_tag("v*".to_string(), "v", tags).unwrap();
+        let latest_tag = get_latest_tag(tags, "v", "beta", false).unwrap();
         assert_eq!(latest_tag, "v2.0.0");
+
+        // Check that the highest stable tag is returned even with a newer prerelease of the same major.minor version
+        let tags = vec!["v1.0.0", "v1.2.0", "v1.1.5", "v2.0.0-beta.0"];
+        let latest_tag = get_latest_tag(tags, "v", "beta", false).unwrap();
+        assert_eq!(latest_tag, "v1.2.0");
 
         // Check that the highest tag (including prerelease) is returned
         let tags = vec!["v1.0.0-beta.0", "v1.0.0", "v1.1.0-beta.0"];
-        let latest_tag = get_latest_tag("v*beta*".to_string(), "v", tags).unwrap();
+        let latest_tag = get_latest_tag(tags, "v", "beta", true).unwrap();
         assert_eq!(latest_tag, "v1.1.0-beta.0");
 
         // Test with different prerelease suffixes
         let tags = vec!["v1.0.0-beta.1", "v1.0.0-beta.2"];
-        let latest_tag = get_latest_tag("v*beta*".to_string(), "v", tags).unwrap();
+        let latest_tag = get_latest_tag(tags, "v", "beta", true).unwrap();
         assert_eq!(latest_tag, "v1.0.0-beta.2");
 
         // Test with multi-digit prerelease numbers (check that lexical comparison is not used)
         let tags = vec!["v1.0.0-beta.10", "v1.0.0-beta.2"];
-        let latest_tag = get_latest_tag("v*beta*".to_string(), "v", tags).unwrap();
+        let latest_tag = get_latest_tag(tags, "v", "beta", true).unwrap();
         assert_eq!(latest_tag, "v1.0.0-beta.10");
 
         // Check that no matching tags returns an error
         let tags: Vec<&str> = vec![];
-        let result = get_latest_tag("v*".to_string(), "v", tags);
+        let result = get_latest_tag(tags, "v", "beta", false);
         assert!(result.is_err());
     }
 }
