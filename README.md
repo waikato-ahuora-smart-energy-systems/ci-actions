@@ -6,7 +6,9 @@
 
 ## 📖 Description
 
-The `tag_checker` GitHub Action retrieves the most recent git tag in a repository. It supports filtering by a specific tag prefix (e.g. `v` or `release-`) and optionally includes prerelease tags (e.g. `v1.0.0-prerelease.1`). This is useful for automated versioning, release workflows, or CI pipelines that depend on the latest tag.
+The `tag_checker` GitHub Action retrieves the most recent semver-formatted git tag in a repository. It supports filtering by a specific tag prefix (e.g. `v` or `release-`) and optionally includes prerelease tags (e.g. `v1.0.0-prerelease.1`). This is useful for automated versioning, release workflows, or CI pipelines that depend on the latest tag.
+
+The tags searched are filtered based on the provided `release-branch`. If the checked-out branch matches the `release-branch`, the Action will only search for non-prelease tags. Otherwise, it will include prerelease tags based on the provided `prerelease-suffix`.
 
 ---
 
@@ -16,7 +18,6 @@ The `tag_checker` GitHub Action retrieves the most recent git tag in a repositor
 |------|--------------|-----------|----------|
 | `release-branch` | The branch to check for the latest tag. | ✅ Yes | — |
 | `tag-prefix` | The prefix of the semver tag to check for (e.g. `v` or `release-`). | ❌ No | `''` |
-| `prerelease` | Whether to include prerelease tags when checking for the latest tag. | ❌ No | `'false'` |
 | `prerelease-suffix` | The suffix used to identify prerelease tags (e.g. `beta`, `rc`, `alpha`). | ❌ No | `'prerelease'` |
 | `token` | The GitHub token to use for downloading the action binary, defaults to workflow token. | ❌ No | `${{ github.token }}` |
 | `working-directory` | The working directory to run the tag check in. | ❌ No | `'.'` |
@@ -40,7 +41,6 @@ steps:
     with:
       release-branch: main
       tag-prefix: v
-      prerelease: false
 
   - name: Print latest tag
     run: echo "Latest tag is ${{ steps.tag.outputs.latest_tag }}"
@@ -51,7 +51,6 @@ steps:
     with:
       release-branch: main
       tag-prefix: v
-      prerelease: true
       prerelease-suffix: beta
 ```
 
@@ -60,5 +59,4 @@ steps:
 The Action must be run in a checked-out repository (make sure to use actions/checkout@v4 before running it).
 
 - tag_prefix allows filtering by patterns like v1., release-, etc.
-- When prerelease: true, the Action includes tags like v1.2.0-prerelease.3 or v1.2.0-beta.1 depending on the suffix.
 - Works seamlessly in monorepos using working-directory for subdirectory-based tagging.
