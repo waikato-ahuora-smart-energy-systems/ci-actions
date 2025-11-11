@@ -24,20 +24,22 @@ fn main() -> Result<(), Box<dyn Error>> {
     let repository = Repository::discover(working_directory.as_path())
         .map_err(|_| "No git repository found in working directory or parent directories")?;
 
-    let prerelease = repository
+    let branch_name = repository
         .head()?
         .shorthand()
-        .map_or(false, |branch| branch != args.release_branch);
+        .ok_or("Failed to get current branch name")?
+        .to_string();
+
+    let prerelease = branch_name != args.release_branch;
 
     if prerelease {
         println!(
-            "Current branch is not the release branch ({}). Including only prerelease tags.",
-            args.release_branch
+            "Current branch ({branch_name}) is not the release branch ({release_branch}). Including only prerelease tags.",
+            release_branch = args.release_branch
         );
     } else {
         println!(
-            "Current branch is the release branch ({}). Excluding prerelease tags.",
-            args.release_branch
+            "Current branch ({branch_name}) is the release branch. Excluding prerelease tags."
         );
     }
 
