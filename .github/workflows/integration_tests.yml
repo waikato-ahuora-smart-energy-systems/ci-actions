@@ -17,7 +17,7 @@ jobs:
       - uses: ./
         id: test
         with:
-          release-branch: Master
+          release-branch: master
           tag-prefix: 'v'
           working-directory: './dummy-repo'
 
