@@ -9,10 +9,6 @@ inputs:
     description: 'The prefix of the semver tag to check for'
     required: false
     default: ''
-  prerelease:
-    description: 'Whether to include prerelease tags when checking for the latest tag'
-    required: false
-    default: 'false'
   prerelease-suffix:
     description: 'The suffix to use when identifying prerelease tags'
     required: false

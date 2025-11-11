@@ -9,8 +9,6 @@ use std::fs::write;
 struct Args {
     #[arg(short, long)]
     release_branch: String,
-    #[arg(short, long)]
-    prerelease: bool,
     #[arg(long, default_value = "prerelease")]
     prerelease_suffix: String,
     #[arg(short, long, default_value = "")]
@@ -26,14 +24,26 @@ fn main() -> Result<(), Box<dyn Error>> {
     let repository = Repository::discover(working_directory.as_path())
         .map_err(|_| "No git repository found in working directory or parent directories")?;
 
+    let prerelease = repository
+        .head()?
+        .shorthand()
+        .map_or(false, |branch| branch != args.release_branch);
+
+    if prerelease {
+        println!(
+            "Current branch is not the release branch ({}). Including only prerelease tags.",
+            args.release_branch
+        );
+    } else {
+        println!(
+            "Current branch is the release branch ({}). Excluding prerelease tags.",
+            args.release_branch
+        );
+    }
+
     let tags = repository.tag_names(None)?;
     let tags = tags.iter().flatten().collect::<Vec<_>>();
-    let latest_tag = get_latest_tag(
-        tags,
-        &args.tag_prefix,
-        &args.prerelease_suffix,
-        args.prerelease,
-    )?;
+    let latest_tag = get_latest_tag(tags, &args.tag_prefix, &args.prerelease_suffix, prerelease)?;
 
     println!("Latest tag found: {}", latest_tag);
 
