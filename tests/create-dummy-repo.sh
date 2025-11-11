@@ -26,7 +26,7 @@ git add file.txt
 git commit -m "Add second line"
 
 # Tag first version
-git tag v0.1
+git tag v0.1.0
 
 # Third commit
 echo "Third line" >> file.txt
@@ -39,7 +39,7 @@ git add file.txt
 git commit -m "Add fourth line"
 
 # Tag another version
-git tag -a v1.0 -m "Release version 1.0"
+git tag -a v1.0.0 -m "Release version 1.0"
 
 # Show results
 echo
